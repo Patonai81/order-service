@@ -25,10 +25,11 @@ public class CustomerOrder {
 
     private String userName;
 
-    @ManyToOne
+
+    @ManyToOne(cascade = {CascadeType.PERSIST,CascadeType.REMOVE})
     private Address address;
 
-    @OneToMany(fetch = FetchType.LAZY)
+    @OneToMany(fetch = FetchType.LAZY, cascade = {CascadeType.ALL},orphanRemoval = true)
     @JoinTable(name = "order_to_item",
             joinColumns = { @JoinColumn(name = "fk_orderId") },
             inverseJoinColumns = { @JoinColumn(name = "fk_orderItem_Id") })
