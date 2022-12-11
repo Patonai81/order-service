@@ -7,12 +7,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.CurrentSecurityContext;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import java.security.Principal;
+import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -27,6 +24,11 @@ public class CustomerOrderController {
     public CustomerOrderDTO createOrder(@RequestBody CustomerOrderDTO customerOrderDTO,@CurrentSecurityContext(expression = "authentication")
     Authentication authentication){
         return customerOrderMapper.toCustomerOrderDTO(customerOrderService.createOrder(customerOrderMapper.toCustomerOrder(customerOrderDTO),authentication));
+    }
+
+    @GetMapping("/find")
+    public List<CustomerOrderDTO> findOrder(String userName){
+           return customerOrderMapper.toCustomerOrderDTOList(customerOrderService.findOrders(userName));
     }
 
 }
