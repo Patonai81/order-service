@@ -31,3 +31,12 @@ build/
 
 ### VS Code ###
 .vscode/
+/.gitignore
+/src/main/resources/application.properties
+/.mvn/wrapper/maven-wrapper.jar
+/.mvn/wrapper/maven-wrapper.properties
+/mvnw
+/mvnw.cmd
+/src/main/java/hu/webuni/orderservice/OrderServiceApplication.java
+/src/test/java/hu/webuni/orderservice/OrderServiceApplicationTests.java
+/pom.xml
