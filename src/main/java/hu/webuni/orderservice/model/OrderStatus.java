@@ -2,7 +2,7 @@ package hu.webuni.orderservice.model;
 
 public enum OrderStatus {
 
-    PENDING("P"), CONFIRMED("C"), DECLINED("D");
+    PENDING("P"), CONFIRMED("C"), DECLINED("D"),DELIVERED("O"),SHIPMENT_FAILED("F");
 
     private String code;
 
