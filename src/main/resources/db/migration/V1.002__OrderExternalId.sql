@@ -1,0 +1,1 @@
+alter table customer_order add column external_shipment_id varchar(255);

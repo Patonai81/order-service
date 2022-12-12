@@ -25,6 +25,7 @@ public class CustomerOrder {
 
     private String userName;
 
+    private String externalShipmentId;
 
     @ManyToOne(cascade = {CascadeType.PERSIST,CascadeType.REMOVE})
     private Address address;

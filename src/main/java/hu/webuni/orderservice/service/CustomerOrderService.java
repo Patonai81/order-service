@@ -1,21 +1,20 @@
 package hu.webuni.orderservice.service;
 
+import hu.webuni.orderservice.mapper.ShipmentMapper;
 import hu.webuni.orderservice.model.CustomerOrder;
 import hu.webuni.orderservice.model.OrderStatus;
 import hu.webuni.orderservice.repository.CustomerOrderRepository;
+import hu.webuni.orderservice.wsclient.CustomerShipment;
+import hu.webuni.orderservice.wsclient.CustomerShipmentImplService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.access.annotation.Secured;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PostMapping;
 
 import javax.transaction.Transactional;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,6 +26,7 @@ public class CustomerOrderService {
 
     public static final String ADMIN = "admin";
     private final CustomerOrderRepository customerOrderRepository;
+    private final ShipmentMapper shipmentMapper;
 
     @Transactional
     public CustomerOrder createOrder(CustomerOrder customerOrder, Authentication authentication) {
@@ -59,12 +59,25 @@ public class CustomerOrderService {
             if (result.isPresent()) {
                 CustomerOrder customerOrder = result.get();
                 customerOrder.setOrderStatus(orderStatus);
+                if (orderStatus.equals(OrderStatus.CONFIRMED)){
+                    customerOrder.setExternalShipmentId(sendOrder(customerOrder));
+                }
+
             }
 
         } else {
             log.error("This orderstatus cannot be set manually:  " + status);
         }
         return result;
+    }
+
+    @Transactional
+    public String sendOrder(CustomerOrder customerOrder){
+        CustomerShipmentImplService shipmentImplService = new CustomerShipmentImplService();
+        CustomerShipment customerShipment = shipmentImplService.getCustomerShipmentImplPort();
+        String generatedId=  customerShipment.shipOrder(shipmentMapper.toShippingOrderDTO(customerOrder));
+        log.info("Generated id has arrived: "+generatedId);
+        return generatedId;
     }
 
 }
