@@ -11,5 +11,5 @@ public interface ShipmentMapper {
     @Mapping(target = "deliveryAddress", source = "address")
     @Mapping(target = "pickUpAddress", ignore = true)
     @Mapping(target = "orderItemDTOList", source = "orderItemList")
-    ShippingOrderDTO  toShippingOrderDTO(CustomerOrder customerOrder);
+    ShippingOrderDTO toShippingOrderDTO(CustomerOrder customerOrder);
 }

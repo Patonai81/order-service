@@ -6,8 +6,10 @@ import hu.webuni.orderservice.model.OrderStatus;
 import hu.webuni.orderservice.repository.CustomerOrderRepository;
 import hu.webuni.orderservice.wsclient.CustomerShipment;
 import hu.webuni.orderservice.wsclient.CustomerShipmentImplService;
+import hu.webuni.shippingservice.dto.ShippingOrderMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.jms.annotation.JmsListener;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -27,6 +29,9 @@ public class CustomerOrderService {
     public static final String ADMIN = "admin";
     private final CustomerOrderRepository customerOrderRepository;
     private final ShipmentMapper shipmentMapper;
+
+    public static final String REQUEST_QUEUE="SHIPMENT_IN";
+
 
     @Transactional
     public CustomerOrder createOrder(CustomerOrder customerOrder, Authentication authentication) {
@@ -79,5 +84,23 @@ public class CustomerOrderService {
         log.info("Generated id has arrived: "+generatedId);
         return generatedId;
     }
+
+    @Transactional
+    @JmsListener(destination = REQUEST_QUEUE,containerFactory = "shipmentFactory")
+    public void getFinancedSemesterNumberJMSReceiver(ShippingOrderMessage message) {
+        log.info("Message has been arrived..............");
+        log.info(message.toString());
+        Optional<CustomerOrder> customerOrderOptional = customerOrderRepository.findByExternalId(message.getExternalId());
+        if (customerOrderOptional.isPresent()){
+            log.info("RECORD FOUND...");
+            CustomerOrder customerOrder = customerOrderOptional.get();
+            log.info(customerOrder.toString());
+            customerOrder.setOrderStatus(OrderStatus.valueOf(message.getOrderStatus()));
+
+        }else {
+            log.info("RECORD CANNOT BE FOUND...");
+        }
+    }
+
 
 }
