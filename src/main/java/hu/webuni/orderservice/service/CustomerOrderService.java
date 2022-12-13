@@ -1,14 +1,18 @@
 package hu.webuni.orderservice.service;
 
+import hu.webuni.orderservice.mapper.AddressMapper;
 import hu.webuni.orderservice.mapper.ShipmentMapper;
 import hu.webuni.orderservice.model.CustomerOrder;
 import hu.webuni.orderservice.model.OrderStatus;
 import hu.webuni.orderservice.repository.CustomerOrderRepository;
+import hu.webuni.orderservice.service.property.AddressProperty;
 import hu.webuni.orderservice.wsclient.CustomerShipment;
 import hu.webuni.orderservice.wsclient.CustomerShipmentImplService;
+import hu.webuni.orderservice.wsclient.ShippingOrderDTO;
 import hu.webuni.shippingservice.dto.ShippingOrderMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -31,6 +35,9 @@ public class CustomerOrderService {
     private final ShipmentMapper shipmentMapper;
 
     public static final String REQUEST_QUEUE="SHIPMENT_IN";
+
+    public final AddressProperty addressProperty;
+    public final AddressMapper addressMapper;
 
 
     @Transactional
@@ -56,6 +63,9 @@ public class CustomerOrderService {
 
     @Transactional
     public Optional<CustomerOrder> changeOrderStatus(Long orderId, String status) throws IllegalArgumentException {
+        log.info("Address property: ");
+        log.info(addressProperty.toString());
+
         Optional<CustomerOrder> result = Optional.ofNullable(null);
         OrderStatus orderStatus = OrderStatus.valueOf(status);
 
@@ -64,6 +74,7 @@ public class CustomerOrderService {
             if (result.isPresent()) {
                 CustomerOrder customerOrder = result.get();
                 customerOrder.setOrderStatus(orderStatus);
+
                 if (orderStatus.equals(OrderStatus.CONFIRMED)){
                     customerOrder.setExternalShipmentId(sendOrder(customerOrder));
                 }
@@ -80,7 +91,9 @@ public class CustomerOrderService {
     public String sendOrder(CustomerOrder customerOrder){
         CustomerShipmentImplService shipmentImplService = new CustomerShipmentImplService();
         CustomerShipment customerShipment = shipmentImplService.getCustomerShipmentImplPort();
-        String generatedId=  customerShipment.shipOrder(shipmentMapper.toShippingOrderDTO(customerOrder));
+        ShippingOrderDTO shippingOrderDTO = shipmentMapper.toShippingOrderDTO(customerOrder);
+        shippingOrderDTO.setPickUpAddress(addressMapper.toAddressDTO(addressProperty));
+        String generatedId=  customerShipment.shipOrder(shippingOrderDTO);
         log.info("Generated id has arrived: "+generatedId);
         return generatedId;
     }
