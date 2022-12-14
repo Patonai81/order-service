@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.jms.annotation.JmsListener;
+import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -49,15 +50,16 @@ public class CustomerOrderService {
         return customerOrderRepository.save(customerOrder);
     }
 
-    //ezeket nem lehet normálisan összekombinálni
-    // @PreAuthorize("hasAuthority('admin') or #username == authentication.principal.username")
+    @PostFilter("hasAuthority('admin') or filterObject.userName == authentication.name")
     public List<CustomerOrder> findOrders(String userName) {
+     /*
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (!((UserDetails) authentication.getPrincipal()).getAuthorities().contains(new SimpleGrantedAuthority(ADMIN))) {
             userName = ((UserDetails) authentication.getPrincipal()).getUsername();
         }
         log.info("User name: " + userName);
+      */
         return customerOrderRepository.findByUserName(userName);
     }
 
